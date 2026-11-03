@@ -367,7 +367,7 @@ jobs:
       && needs.fmt.result == 'success'
       && (needs.validate.result == 'success' || needs.validate.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     environment: terraform
     steps:
       - name: Checkout
@@ -415,24 +415,42 @@ jobs:
           if [ -n "${GITHUB_GRAFANA_TOKEN}" ]; then
             export TF_VAR_github_access_token="${GITHUB_GRAFANA_TOKEN}"
           fi
-          # Grafana Cloud Free can stall folder/dashboard GETs past go-openapi's 30s
-          # client timeout (context deadline exceeded). Retry transient timeouts.
-          attempts=3
+
+          is_transient() {
+            grep -Eqi 'context deadline exceeded|Client\.Timeout|i/o timeout|TLS handshake timeout|connection reset by peer' "$1"
+          }
+          plan_ok() {
+            [ "$1" -eq 0 ] || [ "$1" -eq 2 ]
+          }
+
+          # Grafana Cloud Free often stalls ~95KB dashboard GETs past go-openapi's 30s
+          # client timeout. Serialize refreshes, retry, then fall back to -refresh=false
+          # so CI is not hard-blocked on Free-tier API stalls (still diffs config vs state).
+          attempts=5
           for i in $(seq 1 "${attempts}"); do
-            echo "::group::terraform plan (attempt ${i}/${attempts})"
-            terraform plan -input=false -no-color -lock-timeout=5m -parallelism=4 -detailed-exitcode 2>&1 | tee /tmp/tf-plan-grafana.log
+            echo "::group::terraform plan (attempt ${i}/${attempts}, parallelism=1)"
+            terraform plan -input=false -no-color -lock-timeout=5m -parallelism=1 -detailed-exitcode 2>&1 | tee /tmp/tf-plan-grafana.log
             code=${PIPESTATUS[0]}
             echo "::endgroup::"
-            if [ "${code}" -eq 0 ] || [ "${code}" -eq 2 ]; then
+            if plan_ok "${code}"; then
               exit 0
             fi
-            if [ "${code}" -eq 1 ] && grep -Eqi 'context deadline exceeded|Client\.Timeout|i/o timeout|TLS handshake timeout|connection reset by peer' /tmp/tf-plan-grafana.log; then
+            if [ "${code}" -eq 1 ] && is_transient /tmp/tf-plan-grafana.log; then
               if [ "${i}" -lt "${attempts}" ]; then
-                sleep_s=$((20 * i))
+                sleep_s=$((30 * i))
                 echo "::warning::Grafana plan hit a transient API timeout; retrying in ${sleep_s}s…"
                 sleep "${sleep_s}"
                 continue
               fi
+              echo "::warning::Grafana API still timing out after ${attempts} attempts; planning with -refresh=false (config vs state only)."
+              echo "::group::terraform plan (-refresh=false fallback)"
+              terraform plan -input=false -no-color -lock-timeout=5m -parallelism=1 -refresh=false -detailed-exitcode 2>&1 | tee /tmp/tf-plan-grafana-norefresh.log
+              code=${PIPESTATUS[0]}
+              echo "::endgroup::"
+              if plan_ok "${code}"; then
+                exit 0
+              fi
+              exit 1
             fi
             exit 1
           done

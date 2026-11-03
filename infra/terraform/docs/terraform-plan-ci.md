@@ -16,7 +16,7 @@ Within a run, **validate/plan are scoped per root** (`dorny/paths-filter`): e.g.
 
 Apply stays local (or a future apply workflow). Plan exit code **2** (changes) is treated as success; only errors fail the job.
 
-**Plan Grafana** uses lower `-parallelism`, retries up to 3 times on Grafana API timeouts (`context deadline exceeded` / client timeouts — go-openapi default is 30s), and concurrency cancel-in-progress so rapid merges do not leave overlapping Free-stack plans. Wire `GITHUB_GRAFANA_TOKEN` (below) so CI does not plan to destroy the GitHub data source.
+**Plan Grafana** uses `-parallelism=1`, retries up to 5 times on Grafana API timeouts (`context deadline exceeded` / client timeouts — go-openapi default is 30s), then falls back to `-refresh=false` so Free-tier stalls do not hard-block PRs. Concurrency cancel-in-progress drops superseded merge plans. Wire `GITHUB_GRAFANA_TOKEN` (below) so CI does not plan to destroy the GitHub data source.
 
 ## One-time setup
 
