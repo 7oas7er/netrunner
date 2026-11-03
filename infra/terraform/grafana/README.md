@@ -41,10 +41,11 @@ Optional probe: `./scripts/probe-cloudflare-graphql.sh` or platform
 
 1. Create a fine-grained PAT for repo `7oas7er/netrunner` with **Actions: Read**,
    **Metadata: Read**, and **Contents: Read** if the plugin requires it.
-2. Set `github_access_token` in `terraform.tfvars` (or `GITHUB_GRAFANA_TOKEN`).
-3. For CI Plan Grafana, also set Environment **`terraform`** secret `GITHUB_GRAFANA_TOKEN`
+2. Set `github_access_token` in `terraform.tfvars` (or export `TF_VAR_github_access_token`).
+3. For CI Plan Grafana, also set Environment **`terraform`** secret `GRAFANA_GITHUB_TOKEN`
    to the same PAT (see [`../docs/terraform-plan-ci.md`](../docs/terraform-plan-ci.md)).
    Without it, every CI plan proposes destroying DS `github-netrunner`.
+   (Actions forbids secret names starting with `GITHUB_`.)
 4. The `grafana-github-datasource` **plugin** is installed by platform `shared-obs`.
    This root only creates DS `github-netrunner`.
 5. Both env dashboards include GitHub panels for `deploy-netrunner.yml` and `terraform-plan.yml`.
