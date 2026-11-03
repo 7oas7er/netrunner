@@ -6,15 +6,11 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test --test-reporter=spec --experimental-test-coverage --test-coverage-include=../netrunner/js/generators.js --test-coverage-include=../netrunner/js/catalog.js unit/*.test.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "serve": "node static-server.mjs ../netrunner -l 4173"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "serve": "14.2.6"
-  },
-  "overrides": {
-    "compression": "1.8.2",
-    "fast-uri": "3.1.9"
+    "@playwright/test": "1.64.1"
   },
   "engines": {
     "node": ">=20"
