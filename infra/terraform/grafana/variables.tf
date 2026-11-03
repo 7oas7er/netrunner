@@ -142,7 +142,8 @@ variable "github_access_token" {
   description = <<-EOT
     Fine-grained (preferred) or classic PAT with read access to Actions and
     Metadata on the Netrunner repo (Contents read if the plugin requests it).
-    Prefer GITHUB_GRAFANA_TOKEN so it is not confused with deploy tokens.
+    Prefer CI secret GRAFANA_GITHUB_TOKEN (Actions forbids names starting with GITHUB_)
+    or local TF_VAR_github_access_token — not confused with deploy tokens.
   EOT
   type        = string
   default     = null

@@ -62,8 +62,12 @@ provider "grafana" {
 }
 
 # Grafana instance (dashboards, folders). Auth is the stack service account token.
+# Extra retries help when the shared Free stack is slow under concurrent CI plans
+# (HTTP 429/5xx). Client-side "context deadline exceeded" is retried in CI instead.
 provider "grafana" {
-  alias = "stack"
-  url   = data.grafana_cloud_stack.netrunner.url
-  auth  = grafana_cloud_stack_service_account_token.terraform.key
+  alias      = "stack"
+  url        = data.grafana_cloud_stack.netrunner.url
+  auth       = grafana_cloud_stack_service_account_token.terraform.key
+  retries    = 5
+  retry_wait = 5
 }
