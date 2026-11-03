@@ -25,8 +25,10 @@ permissions:
   pull-requests: read
 
 concurrency:
+  # Cancel superseded runs on push too — rapid Dependabot merges otherwise leave
+  # multiple Grafana Free plans racing the same shared stack (folder GET timeouts).
   group: terraform-plan-${{ github.workflow }}-${{ github.ref_name }}-${{ github.event_name }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 env:
   TF_IN_AUTOMATION: "true"
@@ -404,11 +406,34 @@ jobs:
           TF_VAR_cloud_access_policy_token: ${{ secrets.GRAFANA_CLOUD_ACCESS_POLICY_TOKEN }}
           TF_VAR_cloud_provider_access_token: ${{ secrets.GRAFANA_CLOUD_PROVIDER_ACCESS_TOKEN }}
           TF_VAR_sm_access_token: ${{ secrets.GRAFANA_SM_ACCESS_TOKEN }}
+          # Optional — when set, plan keeps grafana_data_source.github; when unset, count→0
+          # (exit code 2 destroy proposal). Prefer Environment secret GITHUB_GRAFANA_TOKEN.
+          GITHUB_GRAFANA_TOKEN: ${{ secrets.GITHUB_GRAFANA_TOKEN }}
         run: |
           set +e
-          terraform plan -input=false -no-color -lock-timeout=5m -detailed-exitcode
-          code=$?
-          if [ "$code" -eq 1 ]; then
-            exit 1
+          # Empty Actions secrets become "" (not unset); only export a real token.
+          if [ -n "${GITHUB_GRAFANA_TOKEN}" ]; then
+            export TF_VAR_github_access_token="${GITHUB_GRAFANA_TOKEN}"
           fi
-          exit 0
+          # Grafana Cloud Free can stall folder/dashboard GETs past go-openapi's 30s
+          # client timeout (context deadline exceeded). Retry transient timeouts.
+          attempts=3
+          for i in $(seq 1 "${attempts}"); do
+            echo "::group::terraform plan (attempt ${i}/${attempts})"
+            terraform plan -input=false -no-color -lock-timeout=5m -parallelism=4 -detailed-exitcode 2>&1 | tee /tmp/tf-plan-grafana.log
+            code=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ "${code}" -eq 0 ] || [ "${code}" -eq 2 ]; then
+              exit 0
+            fi
+            if [ "${code}" -eq 1 ] && grep -Eqi 'context deadline exceeded|Client\.Timeout|i/o timeout|TLS handshake timeout|connection reset by peer' /tmp/tf-plan-grafana.log; then
+              if [ "${i}" -lt "${attempts}" ]; then
+                sleep_s=$((20 * i))
+                echo "::warning::Grafana plan hit a transient API timeout; retrying in ${sleep_s}s…"
+                sleep "${sleep_s}"
+                continue
+              fi
+            fi
+            exit 1
+          done
+          exit 1
