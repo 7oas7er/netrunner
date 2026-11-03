@@ -34,6 +34,7 @@ sm_access_token = "glsm_..."
 # enable_cloudflare_edge     = true
 
 # GitHub Actions panels (fine-grained PAT: Actions + Metadata read on netrunner).
+# CI Environment terraform secret: GRAFANA_GITHUB_TOKEN (same PAT value).
 # github_access_token = "github_pat_..."
 # github_owner        = "7oas7er"
 # github_repository   = "netrunner"  # this GitHub repo name (default in variables.tf)
