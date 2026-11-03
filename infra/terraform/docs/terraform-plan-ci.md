@@ -16,6 +16,8 @@ Within a run, **validate/plan are scoped per root** (`dorny/paths-filter`): e.g.
 
 Apply stays local (or a future apply workflow). Plan exit code **2** (changes) is treated as success; only errors fail the job.
 
+**Plan Grafana** uses `-parallelism=1`, retries up to 5 times on Grafana API timeouts (`context deadline exceeded` / client timeouts — go-openapi default is 30s), then falls back to `-refresh=false` so Free-tier stalls do not hard-block PRs. Concurrency cancel-in-progress drops superseded merge plans. Wire `GITHUB_GRAFANA_TOKEN` (below) so CI does not plan to destroy the GitHub data source.
+
 ## One-time setup
 
 ### 1. Apply the plan role (stg)
@@ -58,6 +60,7 @@ Create Environment **terraform** (Settings → Environments). No deploy branch r
 | `GRAFANA_CLOUD_ACCESS_POLICY_TOKEN` | stacks:read (+ SA write if plan needs it) |
 | `GRAFANA_CLOUD_PROVIDER_ACCESS_TOKEN` | integration-management scopes |
 | `GRAFANA_SM_ACCESS_TOKEN` | Synthetic Monitoring token |
+| `GITHUB_GRAFANA_TOKEN` | Fine-grained PAT (Actions + Metadata read on `7oas7er/netrunner`). Same value as local `github_access_token` / `GITHUB_GRAFANA_TOKEN`. Without it, Plan Grafana proposes destroying `grafana_data_source.github` (exit code 2 — still green). |
 
 OIDC trust subject (immutable form; Terraform default):
 
