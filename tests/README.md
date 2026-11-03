@@ -10,4 +10,5 @@ npm test
 ```
 
 - `unit/` — generators, catalog helpers, card counts
-- `e2e/` — smoke against `serve` on port 4173
+- `e2e/` — smoke against `static-server.mjs` on port 4173
+- `static-server.mjs` — zero-dep local static server (`npm run serve`)

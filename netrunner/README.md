@@ -7,10 +7,10 @@ Classic Netrunner card browser: full catalog, random Runner/Corp starters, and L
 Serve the folder (required for `fetch` of `data/catalog.json`):
 
 ```bash
-npx --yes serve netrunner -l 4173
+cd tests && npm run serve
 ```
 
-Open http://localhost:4173 — use the nav or `?view=starter-runner` (and similar) query params.
+Open http://127.0.0.1:4173 — use the nav or `?view=starter-runner` (and similar) query params.
 
 ## Data
 
