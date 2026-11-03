@@ -69,7 +69,7 @@ Never commit `.tfstate`, `terraform.tfvars`, API tokens, or AWS keys.
 ## Local development
 
 ```bash
-npx --yes serve netrunner -l 4173
+cd tests && npm run serve
 ```
 
 Tests:
