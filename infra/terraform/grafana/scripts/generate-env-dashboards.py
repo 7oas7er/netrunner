@@ -12,6 +12,10 @@ Cloudflare Free Adaptive Analytics limits (verified against the zone):
   - max query span ~30d (4w2d); no datetimeDay_ASC enum
   - edgeTimeToFirstByteMs not entitled; use avg.originResponseDurationMs
   - year windows use CloudWatch/Prometheus instead of Cloudflare GraphQL
+
+Infinity fixed-window panels MUST use ${__timeFrom}/${__timeTo} (backend macros that
+honor panel timeFrom). Do NOT use Grafana ${__from}/${__to} — those follow the
+dashboard picker only, so hour/day/week/month tiles ignore their own ranges.
 """
 
 from __future__ import annotations
@@ -45,9 +49,10 @@ WINDOWS = [
         "order_by": "datetimeHour_ASC",
     },
     {
-        # CF Free maxDuration ≈ 30d; label stays "Last month"
+        # CF Free maxDuration ≈ 30d inclusive; use 29d so bounds stay under the cap.
+        # Label stays "Last month".
         "title": "Last month",
-        "time_from": "now-30d",
+        "time_from": "now-29d",
         "source": "cf",
         "dim": "datetimeHour",
         "order_by": "datetimeHour_ASC",
@@ -208,8 +213,8 @@ def cf_graphql(
         f"        limit: {limit}\n"
         f"        orderBy: [{order_by}]\n"
         "        filter: {\n"
-        '          datetime_geq: "${__from:date:iso}"\n'
-        '          datetime_leq: "${__to:date:iso}"\n'
+        '          datetime_geq: "${__timeFrom:date:iso}"\n'
+        '          datetime_leq: "${__timeTo:date:iso}"\n'
         f'          clientRequestHTTPHost: "{host}"\n'
         f"{eyeball_line}"
         f"{extra_filter}"
@@ -243,8 +248,8 @@ def cf_firewall_events(ref_id: str, host: str) -> dict:
         "        limit: 50\n"
         "        orderBy: [datetime_DESC]\n"
         "        filter: {\n"
-        '          datetime_geq: "${__from:date:iso}"\n'
-        '          datetime_leq: "${__to:date:iso}"\n'
+        '          datetime_geq: "${__timeFrom:date:iso}"\n'
+        '          datetime_leq: "${__timeTo:date:iso}"\n'
         f'          clientRequestHTTPHost: "{host}"\n'
         "        }\n"
         "      ) {\n"
