@@ -11,7 +11,7 @@ CloudWatch scrape is enabled by default (`enable_cloudwatch_scrape = true`). Org
 | `shared-netrunner-grafana-cloudwatch-role` | IAM role Grafana Labs assumes to read CloudWatch |
 | `grafana_cloud_provider_aws_account` | Links the AWS account to the Grafana stack |
 | `grafana_cloud_provider_aws_cloudwatch_scrape_job` | Scrapes Lambda + CloudFront metrics |
-| Synthetic HTTP checks | Prod/stg site (prod: ≤2 EU probes @ 5m; stg: 1 probe @ 15m) |
+| Synthetic HTTP checks | Prod/stg site (prod: ≤2 EU probes @ 15m; stg: 1 probe @ 30m) |
 | Infinity data source | Cloudflare GraphQL edge traffic + firewall / rate-limit events (optional until token set) |
 | GitHub data source | Actions workflow runs / usage for deploy + terraform-plan (optional until token set) |
 | Folder + dashboards `Netrunner — Production` / `Netrunner — Staging` | Fixed-window traffic/errors/latency + synthetics + Cloudflare edge + GitHub CI |
