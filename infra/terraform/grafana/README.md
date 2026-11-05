@@ -65,7 +65,7 @@ Two dashboards replace the old single overview:
 
 Top rows use **fixed relative ranges** (hour / day / week / month / year):
 
-- **Requests / 4xx+5xx** — Cloudflare GraphQL Adaptive for ≤29d windows (`${__timeFrom}`/`${__timeTo}` so panel `timeFrom` is honored); **year uses CloudWatch** (Free Adaptive max span ≈ 4w2d)
+- **Traffic (req/s) / Errors (% of requests)** — Cloudflare GraphQL Adaptive for ≤29d windows (`${__timeFrom}`/`${__timeTo}` so panel `timeFrom` is honored); Errors = Cloudflare `ratio { status4xx status5xx }` (`count(4xx|5xx) / count` per bucket) in one query, unit `percentunit`, no panel transforms (`scripts/probe-cloudflare-graphql.sh` checks the field on the zone). **Year panels use CloudWatch** (error rates already %; Free Adaptive max span ≈ 4w2d)
 - **Latency** — CloudFront `OriginLatency` + Cloudflare `avg.originResponseDurationMs` (Free does **not** expose edge TTFB)
 - Month window is `now-29d` with hourly buckets (`datetimeDay_ASC` is not a valid Adaptive orderBy; `now-30d` can exceed Free `maxDuration`)
 
