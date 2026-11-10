@@ -27,7 +27,7 @@ resource "grafana_cloud_provider_aws_cloudwatch_scrape_job" "netrunner" {
 
   service {
     name                    = "AWS/Lambda"
-    scrape_interval_seconds = 300
+    scrape_interval_seconds = 900
 
     metric {
       name       = "Invocations"
@@ -54,7 +54,7 @@ resource "grafana_cloud_provider_aws_cloudwatch_scrape_job" "netrunner" {
 
   service {
     name                    = "AWS/CloudFront"
-    scrape_interval_seconds = 300
+    scrape_interval_seconds = 900
 
     metric {
       name       = "Requests"
