@@ -10,7 +10,7 @@ CloudWatch scrape is enabled by default (`enable_cloudwatch_scrape = true`). Org
 |----------|---------|
 | `shared-netrunner-grafana-cloudwatch-role` | IAM role Grafana Labs assumes to read CloudWatch |
 | `grafana_cloud_provider_aws_account` | Links the AWS account to the Grafana stack |
-| `grafana_cloud_provider_aws_cloudwatch_scrape_job` | Scrapes Lambda + CloudFront metrics |
+| `grafana_cloud_provider_aws_cloudwatch_scrape_job` | Two jobs: Lambda (`eu-north-1`) + CloudFront (`us-east-1`), 900s |
 | Synthetic HTTP checks | Prod/stg site (prod: ≤2 EU probes @ 15m; stg: 1 probe @ 30m) |
 | Infinity data source | Cloudflare GraphQL edge traffic + firewall / rate-limit events (optional until token set) |
 | GitHub data source | Actions workflow runs / usage for deploy + terraform-plan (optional until token set) |
@@ -95,8 +95,9 @@ AWS profile: `7oas7er`. Tokens may also be supplied via `GRAFANA_*` env vars whe
 
 ## Notes
 
-- Set `enable_cloudwatch_scrape = false` in `terraform.tfvars` to remove the Cloud Provider AWS account + scrape job without deleting the IAM role.
+- Set `enable_cloudwatch_scrape = false` in `terraform.tfvars` to remove the Cloud Provider AWS account + scrape jobs without deleting the IAM role.
 - Set `enable_cloudflare_edge = false` to skip Cloudflare zoneTag dashboard wiring; `enable_github_ci = false` skips DS `github-netrunner`.
-- CloudWatch scrape covers `eu-north-1` and `us-east-1` (CloudFront metrics).
+- CloudWatch account regions stay `eu-north-1` + `us-east-1`; jobs override to Lambda→`eu-north-1` and CloudFront→`us-east-1` only.
+- Keep-list: Lambda Invocations/Errors/Throttles/Duration Average; CloudFront Requests/5xxErrorRate/OriginLatency. Dropped Duration Maximum, BytesDownloaded, 4xxErrorRate, TotalErrorRate (GMD Phase 2).
 - Tagged AWS resources (`Name` tags on Netrunner) improve metric discovery.
 - Metrics-only for now — no CloudWatch Logs shipping into Grafana.
