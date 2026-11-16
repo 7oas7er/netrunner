@@ -2,7 +2,7 @@
 
 ## Reporting
 
-This is a private Netrunner catalog repo. If you find a vulnerability in the public site, edge config, or infrastructure:
+This is a public Netrunner catalog repo. If you find a vulnerability in the public site, edge config, or infrastructure:
 
 1. Contact Frank (repo owner) directly — do not open a public issue with exploit detail.
 2. Include host/env (`stg` vs `prod`), rough impact, and steps to reproduce if safe.
