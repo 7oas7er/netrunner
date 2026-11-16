@@ -32,10 +32,15 @@ One red Dependabot PR: fix or split; don’t batch-merge majors with unknowns.
 [ ] Terraform CLI: if CI pin in terraform-plan.yml drifted from local, bump both;
     keep required_version floors in versions.tf coherent
 [ ] AWS Project= tag audit (eu-north-1; us-east-1 for CloudFront/ACM/Billing)
+[ ] IaC coverage gaps — inventory live AWS / Cloudflare / Grafana / GitHub vs
+      Terraform (app + platform); report unmanaged / drift / waive; propose import
+      or TF PRs (do not adopt unmanaged resources without Frank)
 [ ] GitHub security floor API verify (docs/github-branch-protection.md)
 [ ] pre-commit autoupdate (then commit the config change via a normal PR)
 [ ] npm audit high+ clean where lockfiles exist (tests/, infra/lambda/)
 [ ] Secrets: rotate only if leak / offboarding / vendor forced expiry (see SECURITY.md)
+[ ] Stale GitHub branches — list remote heads merged into staging (or abandoned);
+      propose delete only (never force-delete protected main/staging); wait for Frank
 ```
 
 Roots with lockfiles: `infra/terraform/aws/bootstrap`, `aws/envs/stg`, `aws/envs/prod`, `cloudflare`, `grafana`.

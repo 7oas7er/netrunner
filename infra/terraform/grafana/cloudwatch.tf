@@ -15,46 +15,21 @@ resource "grafana_cloud_provider_aws_account" "netrunner" {
   regions  = local.scrape_regions
 }
 
-resource "grafana_cloud_provider_aws_cloudwatch_scrape_job" "netrunner" {
+# Static site only — no Lambda. CloudFront metrics live in us-east-1.
+resource "grafana_cloud_provider_aws_cloudwatch_scrape_job" "netrunner_cloudfront" {
   count    = var.enable_cloudwatch_scrape ? 1 : 0
   provider = grafana.cloud_provider
 
   stack_id                = data.grafana_cloud_stack.netrunner.id
-  name                    = "netrunner-cloudwatch"
+  name                    = "netrunner-cloudwatch-cloudfront"
   aws_account_resource_id = grafana_cloud_provider_aws_account.netrunner[0].resource_id
   enabled                 = true
   export_tags             = true
-
-  service {
-    name                    = "AWS/Lambda"
-    scrape_interval_seconds = 300
-
-    metric {
-      name       = "Invocations"
-      statistics = ["Sum"]
-    }
-
-    metric {
-      name       = "Errors"
-      statistics = ["Sum"]
-    }
-
-    metric {
-      name       = "Throttles"
-      statistics = ["Sum"]
-    }
-
-    metric {
-      name       = "Duration"
-      statistics = ["Average", "Maximum"]
-    }
-
-    tags_to_add_to_metrics = ["Name"]
-  }
+  regions_subset_override = ["us-east-1"]
 
   service {
     name                    = "AWS/CloudFront"
-    scrape_interval_seconds = 300
+    scrape_interval_seconds = 900
 
     metric {
       name       = "Requests"
@@ -62,22 +37,7 @@ resource "grafana_cloud_provider_aws_cloudwatch_scrape_job" "netrunner" {
     }
 
     metric {
-      name       = "BytesDownloaded"
-      statistics = ["Sum"]
-    }
-
-    metric {
-      name       = "4xxErrorRate"
-      statistics = ["Average"]
-    }
-
-    metric {
       name       = "5xxErrorRate"
-      statistics = ["Average"]
-    }
-
-    metric {
-      name       = "TotalErrorRate"
       statistics = ["Average"]
     }
 

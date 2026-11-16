@@ -5,6 +5,7 @@ locals {
   # Grafana Labs' AWS account that assumes the CloudWatch integration role.
   grafana_labs_aws_account_id = "008923505280"
 
+  # Account keeps both regions; CloudFront scrape overrides to us-east-1.
   scrape_regions = [
     "eu-north-1",
     "us-east-1",
